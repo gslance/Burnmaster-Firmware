@@ -2162,11 +2162,11 @@ void writeMSP55LV128_GBA(FIL * ptf)
         _reProgram:
         // Write Buffer command
         writeWord_GAB(0xAAA, 0xAA);
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
         writeWord_GAB(0x555, 0x55);
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
         writeWord_GAB(currSector, 0x25);
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
 
         // Write word count (minus 1)
         writeWord_GAB(currSector, 0xF);
@@ -2182,12 +2182,11 @@ void writeMSP55LV128_GBA(FIL * ptf)
           writeWord_GBA(currSector + currSdBuffer + currWriteBuffer + currByte*2, currWord);
         }
 
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
         // Confirm write buffer
         writeWord_GAB(currSector, 0x29);
-
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
 
 
@@ -2262,12 +2261,8 @@ void writeMSP55LV128_GBA(FIL * ptf)
             statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
           }
         }
-
         delayMicroseconds(deley_us_lv128); 
-
-
       }
-
       //delay(1);
     }
   }
@@ -2380,13 +2375,13 @@ void writeMX29GL128E_GBA(FIL * ptf)
 
 void writeSpansion_GBA(FIL * ptf) 
 {
-  for (unsigned long currSector = 0; currSector < fileSize; currSector += 0x5000) // was 0x20000
+  for (unsigned long currSector = 0; currSector < fileSize; currSector += 0x20000) // was 0x20000
   {
     // Blink led
     LED_BLUE_BLINK;
     showPersent(currSector,fileSize,68,3);
     // Write to flashrom
-    for (unsigned long currSdBuffer = 0; currSdBuffer < 0x5000; currSdBuffer += 512) // was 0x20000
+    for (unsigned long currSdBuffer = 0; currSdBuffer < 0x20000; currSdBuffer += 512) // was 0x20000
     {
       // Fill SD buffer
       UINT rdt;
@@ -2418,9 +2413,9 @@ void writeSpansion_GBA(FIL * ptf)
 
         // Confirm write buffer
         delayMicroseconds(deley_us_lv128);
-        //delayMicroseconds(deley_us_lv128);
+        delayMicroseconds(deley_us_lv128);
         writeWord_GBA(currSector, 0x29);
-        //delayMicroseconds(deley_us_lv128);
+        delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
 
         // Read the status register
