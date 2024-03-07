@@ -2380,13 +2380,13 @@ void writeMX29GL128E_GBA(FIL * ptf)
 
 void writeSpansion_GBA(FIL * ptf) 
 {
-  for (unsigned long currSector = 0; currSector < fileSize; currSector += 0x10000) 
+  for (unsigned long currSector = 0; currSector < fileSize; currSector += 0x5000) // was 0x20000
   {
     // Blink led
     LED_BLUE_BLINK;
     showPersent(currSector,fileSize,68,3);
     // Write to flashrom
-    for (unsigned long currSdBuffer = 0; currSdBuffer < 0x10000; currSdBuffer += 512) 
+    for (unsigned long currSdBuffer = 0; currSdBuffer < 0x5000; currSdBuffer += 512) // was 0x20000
     {
       // Fill SD buffer
       UINT rdt;
@@ -2418,9 +2418,9 @@ void writeSpansion_GBA(FIL * ptf)
 
         // Confirm write buffer
         delayMicroseconds(deley_us_lv128);
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
         writeWord_GBA(currSector, 0x29);
-        delayMicroseconds(deley_us_lv128);
+        //delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
 
         // Read the status register
