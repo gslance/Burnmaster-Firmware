@@ -2153,23 +2153,24 @@ void writeMSP55LV128_GBA(FIL * ptf)
     {
       // Fill SD buffer
       UINT rdt;
-      if(f_read(ptf, sdBuffer, 512, &rdt)!= FR_OK){printf("\nF_read err!");};
-
+      //if(f_read(ptf, sdBuffer, 512, &rdt)!= FR_OK){printf("\nF_read err!");};
+      f_read(ptf, sdBuffer, 512, &rdt);
+       
       // Write 16 words at a time
       for (int currWriteBuffer = 0; currWriteBuffer < 512; currWriteBuffer += 32) 
       {
 
         _reProgram:
         // Write Buffer command
-        writeWord_GAB(0xAAA, 0xAA);
+        writeWord_GBA(0xAAA, 0xAA);
         //delayMicroseconds(deley_us_lv128);
-        writeWord_GAB(0x555, 0x55);
+        writeWord_GBA(0x555, 0x55);
         //delayMicroseconds(deley_us_lv128);
-        writeWord_GAB(currSector, 0x25);
+        writeWord_GBA(currSector, 0x25);
         //delayMicroseconds(deley_us_lv128);
 
         // Write word count (minus 1)
-        writeWord_GAB(currSector, 0xF);
+        writeWord_GBA(currSector, 0xF);
 
         // Write buffer
         word currWord;
@@ -2185,13 +2186,13 @@ void writeMSP55LV128_GBA(FIL * ptf)
         //delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
         // Confirm write buffer
-        writeWord_GAB(currSector, 0x29);
+        writeWord_GBA(currSector, 0x29);
         //delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
 
 
         // Read the status register
-        word statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
+        word statusReg = readWord_GBA(currSector + currSdBuffer + currWriteBuffer + 30);
        // int i= 0;
 
         while ((statusReg | 0xFF7F) != (currWord | 0xFF7F)) 
@@ -2213,7 +2214,7 @@ void writeMSP55LV128_GBA(FIL * ptf)
           if(statusReg&0x22)
           {
             
-            statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
+            statusReg = readWord_GBA(currSector + currSdBuffer + currWriteBuffer + 30);
             delayMicroseconds(deley_us_lv128);
             
             if((statusReg | 0xFF7F) != (currWord | 0xFF7F))
@@ -2224,11 +2225,11 @@ void writeMSP55LV128_GBA(FIL * ptf)
                 //reset
                 //writeWord_GAB(0, 0xF0);
                                 //write buffer abort reset
-                writeWord_GAB(0xAAA, 0xAA);
+                writeWord_GBA(0xAAA, 0xAA);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GAB(0x555, 0x55);
+                writeWord_GBA(0x555, 0x55);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GAB(0xAAA, 0xF0);
+                writeWord_GBA(0xAAA, 0xF0);
 
                 delay(1000);
                 printf("write err1!\n");
@@ -2240,11 +2241,11 @@ void writeMSP55LV128_GBA(FIL * ptf)
               if(statusReg&0x2)
               {
                 //write buffer abort reset
-                writeWord_GAB(0xAAA, 0xAA);
+                writeWord_GBA(0xAAA, 0xAA);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GAB(0x555, 0x55);
+                writeWord_GBA(0x555, 0x55);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GAB(0xAAA, 0xF0);
+                writeWord_GBA(0xAAA, 0xF0);
 
                 delay(1000);
                 printf("write err2!\n");
@@ -2258,7 +2259,7 @@ void writeMSP55LV128_GBA(FIL * ptf)
           else
           {
             //
-            statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
+            statusReg = readWord_GBA(currSector + currSdBuffer + currWriteBuffer + 30);
           }
         }
         delayMicroseconds(deley_us_lv128); 
