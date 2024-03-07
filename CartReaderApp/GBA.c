@@ -2162,15 +2162,12 @@ void writeMSP55LV128_GBA(FIL * ptf)
 
         _reProgram:
         // Write Buffer command
-        writeWord_GBA(0xAAA, 0xAA);
-        //delayMicroseconds(deley_us_lv128);
-        writeWord_GBA(0x555, 0x55);
-        //delayMicroseconds(deley_us_lv128);
-        writeWord_GBA(currSector, 0x25);
-        //delayMicroseconds(deley_us_lv128);
+        writeWord_GAB(0xAAA, 0xAA);
+        writeWord_GAB(0x555, 0x55);
+        writeWord_GAB(currSector, 0x25);
 
         // Write word count (minus 1)
-        writeWord_GBA(currSector, 0xF);
+        writeWord_GAB(currSector, 0xF);
 
         // Write buffer
         word currWord;
@@ -2183,38 +2180,21 @@ void writeMSP55LV128_GBA(FIL * ptf)
           writeWord_GBA(currSector + currSdBuffer + currWriteBuffer + currByte*2, currWord);
         }
 
-        //delayMicroseconds(deley_us_lv128);
         delayMicroseconds(deley_us_lv128);
+         
         // Confirm write buffer
-        writeWord_GBA(currSector, 0x29);
-        //delayMicroseconds(deley_us_lv128);
+        writeWord_GAB(currSector, 0x29);
         delayMicroseconds(deley_us_lv128);
 
 
         // Read the status register
-        word statusReg = readWord_GBA(currSector + currSdBuffer + currWriteBuffer + 30);
-       // int i= 0;
+        word statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
 
-        while ((statusReg | 0xFF7F) != (currWord | 0xFF7F)) 
-        {
-          //delay(1);//Microseconds(600);)
-          delayMicroseconds(deley_us_lv128);          
-          //statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
-
-
-          //
-          //i++;
-          //if(i < 100)
-          //{
-          //  //
-          //  statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
-          //  continue;
-          //}
-                   
+        while ((statusReg | 0xFF7F) != (currWord | 0xFF7F)) {
+          delayMicroseconds(deley_us_lv128);
           if(statusReg&0x22)
           {
-            
-            statusReg = readWord_GBA(currSector + currSdBuffer + currWriteBuffer + 30);
+            statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
             delayMicroseconds(deley_us_lv128);
             
             if((statusReg | 0xFF7F) != (currWord | 0xFF7F))
@@ -2222,14 +2202,12 @@ void writeMSP55LV128_GBA(FIL * ptf)
               //
               if(statusReg&0x20)
               {
-                //reset
-                //writeWord_GAB(0, 0xF0);
-                                //write buffer abort reset
-                writeWord_GBA(0xAAA, 0xAA);
+                //write buffer abort reset
+                writeWord_GAB(0xAAA, 0xAA);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GBA(0x555, 0x55);
+                writeWord_GAB(0x555, 0x55);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GBA(0xAAA, 0xF0);
+                writeWord_GAB(0xAAA, 0xF0);
 
                 delay(1000);
                 printf("write err1!\n");
@@ -2241,11 +2219,11 @@ void writeMSP55LV128_GBA(FIL * ptf)
               if(statusReg&0x2)
               {
                 //write buffer abort reset
-                writeWord_GBA(0xAAA, 0xAA);
+                writeWord_GAB(0xAAA, 0xAA);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GBA(0x555, 0x55);
+                writeWord_GAB(0x555, 0x55);
                 delayMicroseconds(deley_us_lv128);
-                writeWord_GBA(0xAAA, 0xF0);
+                writeWord_GAB(0xAAA, 0xF0);
 
                 delay(1000);
                 printf("write err2!\n");
@@ -2259,12 +2237,11 @@ void writeMSP55LV128_GBA(FIL * ptf)
           else
           {
             //
-            statusReg = readWord_GBA(currSector + currSdBuffer + currWriteBuffer + 30);
+            statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
           }
         }
         delayMicroseconds(deley_us_lv128); 
       }
-      //delay(1);
     }
   }
   showPersent(1,1,68,3);
