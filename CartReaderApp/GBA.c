@@ -20,6 +20,7 @@ boolean readType;
 unsigned long cartSize;
 char cartID[5];
 byte romVersion = 0;
+byte forceSaveType = 0;
 
 
 
@@ -1748,6 +1749,8 @@ void idFlashrom_GBA()
       
     }
   }
+
+  printf("GBA flash ID = 0x%s, ROMType : 0x%04x\n",flashid,romType);
 }
 
 boolean blankcheckFlashrom_GBA() 
@@ -1771,7 +1774,7 @@ void eraseIntel4000_GBA()
 {
   // If the game is smaller than 16Mbit only erase the needed blocks
   unsigned long lastBlock = 0xFFFFFF;
-  if (fileSize < 0xFFFFFF)
+  if (fileSize < 0x1000000)
     lastBlock = fileSize;
 
   // Erase 4 blocks with 16kwords each
@@ -1818,7 +1821,7 @@ void eraseIntel4000_GBA()
   showPersent(1,1,70,2);
 
   // Erase the second chip
-  if (fileSize > 0xFFFFFF) {
+  if (fileSize > 0x1000000) {
     // 126 blocks with 64kwords each
     for (unsigned long currBlock = 0x1000000; currBlock < 0x1FDFFFF; currBlock += 0x1FFFF) {
       // Unlock Block
@@ -1863,7 +1866,7 @@ void eraseIntel4400_GBA()
 {
   // If the game is smaller than 32Mbit only erase the needed blocks
   unsigned long lastBlock = 0x1FFFFFF;
-  if (fileSize < 0x1FFFFFF)
+  if (fileSize < 0x2000000)
     lastBlock = fileSize;
 
   // Erase 4 blocks with 16kwords each
@@ -2187,11 +2190,26 @@ void writeMSP55LV128_GBA(FIL * ptf)
         delayMicroseconds(deley_us_lv128);
 
 
+
         // Read the status register
         word statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
 
-        while ((statusReg | 0xFF7F) != (currWord | 0xFF7F)) {
-          delayMicroseconds(deley_us_lv128);
+        while ((statusReg | 0xFF7F) != (currWord | 0xFF7F)) 
+        {
+          //delay(1);//Microseconds(600);)
+          delayMicroseconds(deley_us_lv128);          
+          statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
+
+
+          //
+          //i++;
+          //if(i < 100)
+          //{
+          //  //
+          //  statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
+          //  continue;
+          //}
+                   
           if(statusReg&0x22)
           {
             statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer + 30);
@@ -2225,7 +2243,7 @@ void writeMSP55LV128_GBA(FIL * ptf)
                 delayMicroseconds(deley_us_lv128);
                 writeWord_GAB(0xAAA, 0xF0);
 
-                delay(1000);
+                delay(2000);
                 printf("write err2!\n");
 
                 LED_BLUE_BLINK;
@@ -2455,6 +2473,51 @@ void writeSpansion_GBA(FIL * ptf)
   }
   showPersent(1,1,68,3);
 }
+
+
+void writeMX29GL128E_GBA_1(FIL * ptf) 
+{
+  for (unsigned long currSector = 0; currSector < fileSize; currSector += 0x10000) 
+  {
+    // Blink led
+    LED_BLUE_BLINK;
+    showPersent(currSector,fileSize,68,3);
+    // Write to flashrom
+    for (unsigned long currSdBuffer = 0; currSdBuffer < 0x10000; currSdBuffer += 512) 
+    {
+      // Fill SD buffer
+      UINT rdt;
+      f_read(ptf, sdBuffer, 512, &rdt);
+
+      // Write 32 words at a time
+      for (int currWriteBuffer = 0; currWriteBuffer < 512; currWriteBuffer += 2) {
+
+        word currWord = *(word *)(sdBuffer + currWriteBuffer);
+        // Write Buffer command
+        writeWord_GAB(0xAAA, 0xAA);
+        writeWord_GAB(0x555, 0x55);
+        writeWord_GAB(0xAAA, 0xA0);
+        writeWord_GBA(currSector + currSdBuffer + currWriteBuffer, currWord);
+        delayMicroseconds(10);
+
+        // Read the status register
+        word statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer);
+
+        while ((statusReg | 0xFF7F) != (currWord | 0xFF7F)) {
+          delay_GBA();
+          statusReg = readWord_GAB(currSector + currSdBuffer + currWriteBuffer);
+        }
+
+        //delay(1);
+      }
+    }
+  }
+  showPersent(1,1,68,3);
+}
+
+
+
+
 
 boolean verifyFlashrom_GBA() 
 {
@@ -3020,7 +3083,17 @@ void setup_GBA()
     sprintf(tmsg,"%d MB",cartSize);    
     OledShowString(64,2,tmsg,8);
   }
+
+
+
+  //deal with the save type, some roms' flag maybe one type, but the PHY Cart is not.
+  //this works by Patches to the rom file...
   strcpy(tmsg,"Save: ");
+  if(forceSaveType != 0){
+    saveType = forceSaveType;
+    strcat(tmsg,"f-");
+  }
+
   switch (saveType)
   {
     case 0:
@@ -3045,6 +3118,10 @@ void setup_GBA()
 
     case 5:
       strcat(tmsg,"1024K Flash");
+      break;
+
+    case 6:
+      strcat(tmsg,"512K Sram");
       break;
   }
   OledShowString(0,3,tmsg,8);
@@ -3488,38 +3565,37 @@ uint8_t gbaMenu() {
         // wait for user choice to come back from the question box menu
         switch (GBASaveMenu)
         {
-          case 0:
-            // 4K EEPROM
-            saveType = 1;
-            break;
-
           case 1:
-            // 64K EEPROM
-            saveType = 2;
+            // 4K EEPROM
+            forceSaveType = 1;
             break;
 
           case 2:
-            // 256K SRAM/FRAM
-            saveType = 3;
+            // 64K EEPROM
+            forceSaveType = 2;
             break;
 
           case 3:
-            // 512K SRAM/FRAM
-            saveType = 6;
+            // 256K SRAM/FRAM
+            forceSaveType = 3;
             break;
 
           case 4:
-            // 512K FLASH
-            saveType = 4;
+            // 512K SRAM/FRAM
+            forceSaveType = 6;
             break;
 
           case 5:
+            // 512K FLASH
+            forceSaveType = 4;
+            break;
+
+          case 6:
             // 1024K FLASH
-            saveType = 5;
+            forceSaveType = 5;
             break;
         }
-      }
-       
+      }       
       break;
 
 
